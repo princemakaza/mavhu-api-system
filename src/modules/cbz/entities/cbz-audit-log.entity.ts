@@ -26,6 +26,9 @@ export class CbzAuditLog {
   @Column({ type: 'text', default: '' })
   detail: string;
 
+  @Column({ name: 'bank_id', type: 'int', nullable: true })
+  bankId: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }

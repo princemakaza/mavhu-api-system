@@ -26,6 +26,9 @@ export class CbzRiskEntry {
   @Column({ name: 'linked_entity', type: 'varchar', length: 20 })
   linkedEntity: string;
 
+  @Column({ name: 'bank_id', type: 'int', nullable: true })
+  bankId: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

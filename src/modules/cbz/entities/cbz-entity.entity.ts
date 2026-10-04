@@ -5,6 +5,9 @@ export class CbzEntity {
   @PrimaryColumn({ type: 'varchar', length: 40 })
   code: string;
 
+  @Column({ name: 'bank_id', type: 'int' })
+  bankId: number;
+
   @Column({ type: 'varchar', length: 255 })
   name: string;
 

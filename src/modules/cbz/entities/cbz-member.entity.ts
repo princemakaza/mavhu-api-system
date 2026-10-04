@@ -28,6 +28,9 @@ export class CbzMember {
   @Column({ type: 'varchar', length: 20 })
   role: string;
 
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

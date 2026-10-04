@@ -18,6 +18,7 @@ import { SatelliteNdviCo2Module } from './modules/satellite-ndvi-co2/satellite-n
 import { CropCyclesModule } from './modules/crop-cycles/crop-cycles.module';
 import { EmissionsAccountingModule } from './modules/emissions-accounting/emissions-accounting.module';
 import { CbzModule } from './modules/cbz/cbz.module';
+import { PlatformAdminModule } from './modules/platform-admin/platform-admin.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { CbzModule } from './modules/cbz/cbz.module';
     CropCyclesModule,
     EmissionsAccountingModule,
     CbzModule,
+    PlatformAdminModule,
   ],
 })
 export class AppModule {}

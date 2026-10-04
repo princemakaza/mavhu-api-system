@@ -27,6 +27,14 @@ export class Bank {
   @Column({ type: 'varchar', length: 255 })
   identifier: string;
 
+  @ApiProperty({ example: 'active', enum: ['onboarding', 'active', 'suspended'] })
+  @Column({ type: 'varchar', length: 20, default: 'active' })
+  status: string;
+
+  @ApiProperty({ example: ['snapshot', 'portfolio'], description: 'Dashboard modules this bank has licensed' })
+  @Column({ type: 'text', array: true })
+  modules: string[];
+
   @ApiProperty()
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;

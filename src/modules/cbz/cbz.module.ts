@@ -3,8 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfig } from '../../config/configuration';
+import { Bank } from '../banks/entities/bank.entity';
 import { CbzController } from './cbz.controller';
 import { CbzService } from './cbz.service';
+import { CbzImportService } from './import/cbz-import.service';
 import { CbzAuditLog } from './entities/cbz-audit-log.entity';
 import { CbzCounterparty } from './entities/cbz-counterparty.entity';
 import { CbzDepartment } from './entities/cbz-department.entity';
@@ -17,12 +19,14 @@ import { CbzIncident } from './entities/cbz-incident.entity';
 import { CbzIngestionBatch } from './entities/cbz-ingestion-batch.entity';
 import { CbzInsurancePolicy } from './entities/cbz-insurance-policy.entity';
 import { CbzMember } from './entities/cbz-member.entity';
+import { CbzReportingPeriod } from './entities/cbz-reporting-period.entity';
 import { CbzRiskEntry } from './entities/cbz-risk-entry.entity';
 import { CbzWorkforce } from './entities/cbz-workforce.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
+      Bank,
       CbzEntity,
       CbzDepartment,
       CbzMember,
@@ -37,6 +41,7 @@ import { CbzWorkforce } from './entities/cbz-workforce.entity';
       CbzGeospatial,
       CbzIngestionBatch,
       CbzAuditLog,
+      CbzReportingPeriod,
     ]),
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -47,6 +52,7 @@ import { CbzWorkforce } from './entities/cbz-workforce.entity';
     }),
   ],
   controllers: [CbzController],
-  providers: [CbzService],
+  providers: [CbzService, CbzImportService],
+  exports: [CbzService, TypeOrmModule, JwtModule],
 })
 export class CbzModule {}

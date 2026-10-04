@@ -136,11 +136,11 @@ async function seed() {
   // eslint-disable-next-line no-console
   console.log(`Seed complete. ${USERS.length} users available; shared dev password: ${PASSWORD}`);
 
-  await seedCbz(ds);
+  await seedCbz(ds, banks.cbz.id);
   await app.close();
 }
 
-async function seedCbz(ds: DataSource) {
+async function seedCbz(ds: DataSource, bankId: number) {
   const CBZ_PASSWORD = 'cbz-demo';
   const hash = await bcrypt.hash(CBZ_PASSWORD, 10);
 
@@ -159,7 +159,7 @@ async function seedCbz(ds: DataSource) {
   ];
   for (const e of CBZ_ENTITIES) {
     const existing = await entityRepo.findOne({ where: { code: e.code } });
-    if (!existing) await entityRepo.save(entityRepo.create(e));
+    if (!existing) await entityRepo.save(entityRepo.create({ ...e, bankId }));
   }
 
   // ── Departments ───────────────────────────────────────────────────────────
@@ -364,7 +364,7 @@ async function seedCbz(ds: DataSource) {
   ];
   for (const risk of CBZ_RISKS) {
     const existing = await riskRepo.findOne({ where: { id: risk.id } });
-    if (!existing) await riskRepo.save(riskRepo.create(risk));
+    if (!existing) await riskRepo.save(riskRepo.create({ ...risk, bankId }));
   }
 
   // ── Geospatial ────────────────────────────────────────────────────────────
@@ -414,7 +414,7 @@ async function seedCbz(ds: DataSource) {
   ];
   for (const entry of CBZ_AUDIT) {
     const existing = await auditRepo.findOne({ where: { id: entry.id } });
-    if (!existing) await auditRepo.save(auditRepo.create(entry));
+    if (!existing) await auditRepo.save(auditRepo.create({ ...entry, bankId }));
   }
 
   // eslint-disable-next-line no-console
