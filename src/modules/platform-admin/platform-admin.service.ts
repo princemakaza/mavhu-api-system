@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { In, QueryFailedError, Repository } from 'typeorm';
 import { MAVHU_ADMIN_ROLE } from '../../common/auth/token-identity';
 import { Bank } from '../banks/entities/bank.entity';
+import { AuditTrailService } from '../cbz/audit-trail.service';
 import { CbzAuditLog } from '../cbz/entities/cbz-audit-log.entity';
 import { CbzDepartment } from '../cbz/entities/cbz-department.entity';
 import { CbzEntity } from '../cbz/entities/cbz-entity.entity';
@@ -54,22 +55,11 @@ export class PlatformAdminService {
     @InjectRepository(Role) private roles: Repository<Role>,
     @InjectRepository(UserRole) private userRoles: Repository<UserRole>,
     @InjectRepository(Customer) private customers: Repository<Customer>,
+    private readonly auditTrail: AuditTrailService,
   ) {}
 
   private async log(actor: AdminActor, action: string, targetType: string, targetId: string | null, detail: string, bankId: number | null, entityCode: string | null = null) {
-    await this.audit.save(
-      this.audit.create({
-        id: randomUUID(),
-        timestamp: new Date(),
-        actor: `${actor.email} (MAvHU)`,
-        action,
-        entityCode,
-        targetType,
-        targetId,
-        detail,
-        bankId,
-      }),
-    );
+    await this.auditTrail.record({ bankId, actor: `${actor.email} (MAvHU)`, action, entityCode, targetType, targetId, detail });
   }
 
   // ── Overview ──────────────────────────────────────────────────────────────
@@ -448,6 +438,23 @@ export class PlatformAdminService {
       'GROUP',
     );
     return { ...saved, bankName: bank.name };
+  }
+
+  // ── Agri farms (MRV customers) ────────────────────────────────────────────
+  /** Agribusiness customers on the MRV platform, their land, users and financing banks. */
+  farms() {
+    return this.banks.query(`
+      SELECT c.id, c.name, c.country, c.email,
+             (SELECT count(*)::int FROM mavhu.estates e WHERE e.customer_id = c.id) AS estates,
+             (SELECT coalesce(sum(hectares), 0)::int FROM mavhu.estates e WHERE e.customer_id = c.id) AS hectares,
+             (SELECT count(*)::int FROM mavhu.users u WHERE u.customer_id = c.id AND NOT u.is_deleted) AS users,
+             (SELECT max(date) FROM mavhu.satellite_ndvi_co2 s WHERE s.customer_id = c.id) AS "latestPass",
+             (SELECT count(*)::int FROM mavhu.emissions_accounting a WHERE a.customer_id = c.id AND NOT a.approved) AS "pendingApprovals",
+             (SELECT string_agg(b.name, ', ' ORDER BY b.name) FROM mavhu.bank_customers bc JOIN mavhu.banks b ON b.id = bc.bank_id WHERE bc.customer_id = c.id) AS "financedBy"
+      FROM mavhu.customers c
+      WHERE c.identifier = 'AGROBUSINESS' AND NOT c.is_deleted
+      ORDER BY c.name
+    `);
   }
 
   // ── Audit trail ───────────────────────────────────────────────────────────

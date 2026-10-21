@@ -385,7 +385,7 @@ export const DATASETS: DatasetDef[] = [
     columns: [
       { key: 'id', header: 'Risk ID', type: 'string' },
       { key: 'title', header: 'Title', aliases: ['Risk'], type: 'string', required: true, maxLength: 255 },
-      { key: 'category', header: 'Category', type: 'string', required: true, options: ['Physical', 'Transition', 'Liability', 'Opportunity'] },
+      { key: 'category', header: 'Category', type: 'string', required: true, options: ['Physical', 'Transition', 'Liability', 'Opportunity', 'Social', 'Governance'] },
       { key: 'likelihood', header: 'Likelihood (1-5)', aliases: ['Likelihood'], type: 'int', required: true },
       { key: 'impact', header: 'Impact (1-5)', aliases: ['Impact'], type: 'int', required: true },
       { key: 'owner', header: 'Owner', type: 'string', required: true, maxLength: 255 },

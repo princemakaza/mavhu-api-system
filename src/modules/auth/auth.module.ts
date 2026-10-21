@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfig } from '../../config/configuration';
+import { Customer } from '../customers/entities/customer.entity';
 import { RolesModule } from '../roles/roles.module';
 import { UserRolesModule } from '../user-roles/user-roles.module';
 import { UsersModule } from '../users/users.module';
@@ -13,6 +15,7 @@ import { AuthService } from './auth.service';
     UsersModule,
     RolesModule,
     UserRolesModule,
+    TypeOrmModule.forFeature([Customer]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService<{ jwt: AppConfig['jwt'] }, true>) => {

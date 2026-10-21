@@ -22,6 +22,12 @@ export class AuthUserDto {
     description: 'Every role (AUDITOR, ESG_READER, ESG_CONTRIBUTOR, ESG_APPROVER, or any future role) currently assigned to this user.',
   })
   roles: string[];
+
+  @ApiProperty({ example: 'AGROBUSINESS', nullable: true, description: 'PLATFORM, BANK or AGROBUSINESS' })
+  orgType: string | null;
+
+  @ApiProperty({ example: 'Chipinge Tea Estates (Pvt) Ltd', nullable: true })
+  organizationName: string | null;
 }
 
 export class AuthResponseDto {

@@ -19,6 +19,7 @@ import { CropCyclesModule } from './modules/crop-cycles/crop-cycles.module';
 import { EmissionsAccountingModule } from './modules/emissions-accounting/emissions-accounting.module';
 import { CbzModule } from './modules/cbz/cbz.module';
 import { PlatformAdminModule } from './modules/platform-admin/platform-admin.module';
+import { AgriModule } from './modules/agri/agri.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { PlatformAdminModule } from './modules/platform-admin/platform-admin.mod
     EmissionsAccountingModule,
     CbzModule,
     PlatformAdminModule,
+    AgriModule,
   ],
 })
 export class AppModule {}

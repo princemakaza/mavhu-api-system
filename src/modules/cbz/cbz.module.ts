@@ -20,6 +20,13 @@ import { CbzIngestionBatch } from './entities/cbz-ingestion-batch.entity';
 import { CbzInsurancePolicy } from './entities/cbz-insurance-policy.entity';
 import { CbzMember } from './entities/cbz-member.entity';
 import { CbzReportingPeriod } from './entities/cbz-reporting-period.entity';
+import { CbzDisclosure } from './entities/cbz-disclosure.entity';
+import { CbzEvidence } from './entities/cbz-evidence.entity';
+import { CbzRegisterItem } from './entities/cbz-register-item.entity';
+import { AuditTrailService } from './audit-trail.service';
+import { DisclosuresService } from './disclosures.service';
+import { EvidenceService } from './evidence.service';
+import { RegistersService } from './registers/registers.service';
 import { CbzRiskEntry } from './entities/cbz-risk-entry.entity';
 import { CbzWorkforce } from './entities/cbz-workforce.entity';
 
@@ -42,6 +49,9 @@ import { CbzWorkforce } from './entities/cbz-workforce.entity';
       CbzIngestionBatch,
       CbzAuditLog,
       CbzReportingPeriod,
+      CbzEvidence,
+      CbzDisclosure,
+      CbzRegisterItem,
     ]),
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -52,7 +62,7 @@ import { CbzWorkforce } from './entities/cbz-workforce.entity';
     }),
   ],
   controllers: [CbzController],
-  providers: [CbzService, CbzImportService],
-  exports: [CbzService, TypeOrmModule, JwtModule],
+  providers: [CbzService, CbzImportService, AuditTrailService, RegistersService, EvidenceService, DisclosuresService],
+  exports: [CbzService, AuditTrailService, TypeOrmModule, JwtModule],
 })
 export class CbzModule {}

@@ -4,7 +4,8 @@ import { randomBytes } from 'crypto';
 import { DataSource, EntityManager, EntityTarget, In, ObjectLiteral, Repository } from 'typeorm';
 import { Bank } from '../../banks/entities/bank.entity';
 import { CallerContext, CbzService, ScopeInput } from '../cbz.service';
-import { CbzAuditLog } from '../entities/cbz-audit-log.entity';
+import { AuditTrailService } from '../audit-trail.service';
+import { can, isBankWide } from '../role-policy';
 import { CbzCounterparty } from '../entities/cbz-counterparty.entity';
 import { CbzEntity } from '../entities/cbz-entity.entity';
 import { CbzEsgEmission } from '../entities/cbz-esg-emission.entity';
@@ -63,10 +64,6 @@ export interface ImportResult {
   totals: { rows: number; valid: number; created: number; updated: number; rejected: number };
 }
 
-/** Roles that may submit data. Readers and auditors are read-only. */
-const IMPORT_ROLES = new Set(['admin', 'approver', 'contributor', 'customer', 'mavhu-admin']);
-/** Roles that may import for any subsidiary of their bank; the rest only for their own. */
-const BANK_WIDE_ROLES = new Set(['admin', 'approver', 'mavhu-admin']);
 const MAX_ISSUES = 200;
 
 type Row = Record<string, unknown>;
@@ -105,6 +102,7 @@ export class CbzImportService {
   constructor(
     private readonly cbz: CbzService,
     private readonly dataSource: DataSource,
+    private readonly auditTrail: AuditTrailService,
     @InjectRepository(Bank) private banks: Repository<Bank>,
     @InjectRepository(CbzEntity) private entities: Repository<CbzEntity>,
     @InjectRepository(CbzReportingPeriod) private periods: Repository<CbzReportingPeriod>,
@@ -123,7 +121,7 @@ export class CbzImportService {
   // ── Entry point ───────────────────────────────────────────────────────────
   async run(input: ScopeInput, file: { buffer: Buffer; originalname: string }, dryRun: boolean, defaultPeriod?: string): Promise<ImportResult> {
     const caller = await this.cbz.resolveCaller(input);
-    if (!IMPORT_ROLES.has(caller.role)) throw new ForbiddenException('Your role can view data but not import it');
+    if (!can(caller, 'submit-data')) throw new ForbiddenException('Your role can view data but not import it');
 
     const period = defaultPeriod?.trim() ? parsePeriod(defaultPeriod.trim()) : null;
     if (defaultPeriod?.trim() && !period) throw new BadRequestException('Default period must look like 2026-08, 2026-Q3 or 2026');
@@ -134,7 +132,7 @@ export class CbzImportService {
       caller,
       bank,
       bankCodes: new Set(caller.scope.codes),
-      allowedCodes: new Set(BANK_WIDE_ROLES.has(caller.role) ? caller.scope.codes : [caller.entityCode ?? '']),
+      allowedCodes: new Set(isBankWide(caller) ? caller.scope.codes : [caller.entityCode ?? '']),
       lockedPeriods: new Set(locked.map((p) => p.period)),
       defaultPeriod: period,
       fileName: file.originalname,
@@ -754,7 +752,7 @@ export class CbzImportService {
         for (const { rowNumber, row } of rows) {
           const linked = String(row.linkedEntity).toUpperCase();
           const isGroup = linked === groupCode;
-          if (isGroup && !BANK_WIDE_ROLES.has(ctx.caller.role)) {
+          if (isGroup && !can(ctx.caller, 'manage-registers')) {
             this.reject(result, [{ row: rowNumber, column: 'Linked Entity', code: 'OUT_OF_SCOPE', message: 'Only bank admins and approvers can add Group-level risks' }]);
             continue;
           }
@@ -835,17 +833,15 @@ export class CbzImportService {
             notificationSent: false,
           });
         }
-        await manager.save(CbzAuditLog, {
-          id: `${batchId}-A`,
-          timestamp: stamp,
+        await this.auditTrail.record({
+          bankId: ctx.bank.id,
           actor: ctx.caller.actorName,
           action: 'IMPORT',
           entityCode: subsidiary || 'GROUP',
           targetType: 'Ingestion',
           targetId: batchId,
           detail: `${result.label}: ${result.toCreate} new, ${result.toUpdate} updated, ${result.rejected} rejected from ${fileLabel}`,
-          bankId: ctx.bank.id,
-        });
+        }, manager);
         result.batchId = batchId;
         result.status = result.validRows === 0 ? 'failed' : result.rejected ? 'partial' : 'imported';
       }

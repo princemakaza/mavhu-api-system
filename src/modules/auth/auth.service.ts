@@ -1,8 +1,11 @@
 import { ConflictException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 import { AppConfig } from '../../config/configuration';
+import { Customer } from '../customers/entities/customer.entity';
 import { RolesService } from '../roles/roles.service';
 import { UserRolesService } from '../user-roles/user-roles.service';
 import { User } from '../users/entities/user.entity';
@@ -22,6 +25,7 @@ export class AuthService {
     private readonly rolesService: RolesService,
     private readonly userRolesService: UserRolesService,
     private readonly jwtService: JwtService,
+    @InjectRepository(Customer) private readonly customers: Repository<Customer>,
     configService: ConfigService<{ jwt: AppConfig['jwt'] }, true>,
   ) {
     this.jwtExpiresIn = configService.get('jwt', { infer: true }).expiresIn;
@@ -78,8 +82,14 @@ export class AuthService {
     );
   }
 
-  private buildAuthResponse(user: User, roles: string[]): AuthResponseDto {
-    const payload: JwtPayload = { sub: user.id, email: user.email, roles };
+  /**
+   * The token carries the organisation type so guards can tell a MAvHU auditor (PLATFORM) from a
+   * bank's or farm's own staff, and the frontend can send each user to the right portal.
+   */
+  private async buildAuthResponse(user: User, roles: string[]): Promise<AuthResponseDto> {
+    const org = await this.customers.findOne({ where: { id: user.customerId } });
+    const orgType = org?.identifier ?? null;
+    const payload: JwtPayload = { sub: user.id, email: user.email, roles, orgType, customerId: user.customerId };
     const accessToken = this.jwtService.sign(payload);
 
     return {
@@ -93,6 +103,8 @@ export class AuthService {
         customerId: user.customerId,
         estateId: user.estateId,
         roles,
+        orgType,
+        organizationName: org?.name ?? null,
       },
     };
   }

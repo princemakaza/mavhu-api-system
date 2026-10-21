@@ -67,4 +67,8 @@ export class CbzEsgEmission {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
+
+  /** Why an approver sent the record back to draft. */
+  @Column({ name: 'review_note', type: 'text', nullable: true })
+  reviewNote: string | null;
 }

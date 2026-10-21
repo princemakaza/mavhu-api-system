@@ -97,6 +97,11 @@ export class PlatformAdminController {
   @ApiOperation({ summary: 'Lock or reopen a bank\'s reporting period (RFP F19/F38 assurance)' })
   setPeriod(@Req() req: AdminRequest, @Body() dto: SetPeriodDto) { return this.admin.setPeriod(req.admin, dto); }
 
+  // ── Agri farms ────────────────────────────────────────────────────────────
+  @Get('farms')
+  @ApiOperation({ summary: 'Agribusiness MRV customers: estates, users, latest satellite pass, financing banks' })
+  farms() { return this.admin.farms(); }
+
   // ── Audit ─────────────────────────────────────────────────────────────────
   @Get('audit')
   @ApiOperation({ summary: 'Cross-bank audit trail, newest first (filter with ?bankId=, cap with ?limit=)' })

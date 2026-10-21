@@ -32,6 +32,21 @@ export class CbzCounterparty {
   @Column({ name: 'mrv_enhanced', type: 'boolean', default: false })
   mrvEnhanced: boolean;
 
+  /** Sustainable-finance taxonomy tag (F22/F33), e.g. ICMA GBP / AfDB. */
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  taxonomy: string | null;
+
+  @Column({ name: 'taxonomy_category', type: 'varchar', length: 120, nullable: true })
+  taxonomyCategory: string | null;
+
+  /** Eligible / Aligned / Not eligible / Under review. */
+  @Column({ name: 'taxonomy_status', type: 'varchar', length: 20, nullable: true })
+  taxonomyStatus: string | null;
+
+  /** The MAvHU MRV customer (agribusiness) this borrower is, when its land is monitored. */
+  @Column({ name: 'customer_id', type: 'int', nullable: true })
+  customerId: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

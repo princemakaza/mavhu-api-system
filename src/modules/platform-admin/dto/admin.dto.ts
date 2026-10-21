@@ -27,6 +27,19 @@ export const DASHBOARD_MODULES = [
   'entity',
   'data-entry',
   'members',
+  'sustainable-finance',
+  'scenarios',
+  'appetite',
+  'targets',
+  'decarbonisation',
+  'environment',
+  'social',
+  'materiality',
+  'stakeholders',
+  'suppliers',
+  'data-ownership',
+  'disclosures',
+  'evidence',
 ] as const;
 /** Bank portal roles. auditor = read-only assurer (RFP F19/F38). */
 export const MEMBER_ROLES = ['admin', 'approver', 'contributor', 'reader', 'auditor', 'customer'] as const;
